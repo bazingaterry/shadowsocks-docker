@@ -4,6 +4,7 @@ ENV BUILD_DEPS git-core gettext build-essential autoconf asciidoc xmlto zlib1g-d
 ENV RUNTIME_DEPS libev-dev libc-ares-dev libsodium-dev libmbedtls-dev libtool libssl-dev libpcre3-dev
 ENV SSDIR /tmp/shadowsocks-libev
 ENV OBFSDIR /tmp/simple-obfs
+ENV ACLPATH /etc/shadowsocks-acl
 
 ENV PORT 8839
 ENV LISTEN "-s 0.0.0.0"
@@ -34,5 +35,8 @@ RUN git submodule update --init --recursive \
 WORKDIR /
 RUN rm -rf $SSDIR && rm -rf $OBFSDIR && apt-get --purge autoremove -y $DEPENDENCIES
 
+# Set ACL file
+RUN echo '[outbound_block_list]\n127.0.0.1/32\n192.168.0.0/16\n172.16.0.0/12\n10.0.0.0/8\n' > $ACLPATH
+
 EXPOSE $PORT
-CMD ss-manager --manager-address 0.0.0.0:$PORT $LISTEN -t $TIMEOUT
+CMD ss-manager --manager-address 127.0.0.1:$PORT $LISTEN -t $TIMEOUT --acl $ACLPATH
